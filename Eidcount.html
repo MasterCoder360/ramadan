@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eid Countdown</title>
+    <style>
+        body {
+            background-image: url('https://img.freepik.com/premium-vector/ramadan-background-template-design-vector-with-lantern-ornament_490655-405.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden; /* Prevents scrollbars from confetti */
+        }
+
+        /* Confetti Layer */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicking through confetti */
+            z-index: 1;
+        }
+
+        #eid-countdown {
+            position: relative;
+            z-index: 10; /* Keeps countdown above confetti */
+            text-align: center;
+            background-color: #064e3bcc; 
+            color: #fbbf24;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #fbbf24;
+            backdrop-filter: blur(5px);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .timer-unit {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        .timer-unit span {
+            display: block;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<div id="eid-countdown">
+    <h2 id="title">Countdown to Eid</h2>
+    <div id="timer">
+        <div class="timer-unit"><span id="days">00</span><div class="label">Days</div></div>
+        <div class="timer-unit"><span id="hours">00</span><div class="label">Hours</div></div>
+        <div class="timer-unit"><span id="minutes">00</span><div class="label">Min</div></div>
+        <div class="timer-unit"><span id="seconds">00</span><div class="label">Sec</div></div>
+    </div>
+</div>
+
+<script>
+    /* --- 1. COUNTDOWN LOGIC --- */
+    const countdownDate = new Date("March 20, 2026 00:00:00").getTime();
+
+    const x = setInterval(function() {
+        const now = new Date().getTime();
+        const distance = countdownDate - now;
+
+        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("days").innerHTML = d;
+        document.getElementById("hours").innerHTML = String(h).padStart(2, '0');
+        document.getElementById("minutes").innerHTML = String(m).padStart(2, '0');
+        document.getElementById("seconds").innerHTML = String(s).padStart(2, '0');
+
+        if (distance < 0) {
+            clearInterval(x);
+            document.getElementById("eid-countdown").innerHTML = "<h1>Eid Mubarak!</h1>";
+        }
+    }, 1000);
+
+    /* --- 2. OFFLINE CONFETTI ENGINE --- */
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    // Festive colors: Golds, Silvers, and White
+    const colors = ['#fbbf24', '#fcd34d', '#ffffff', '#fef3c7', '#d4af37'];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height - canvas.height;
+            this.size = Math.random() * 6 + 4;
+            this.speed = Math.random() * 2 + 1.5; // Slightly slower, elegant fall
+            this.color = colors[Math.floor(Math.random() * colors.length)];
+            this.rotation = Math.random() * 360;
+            this.rotationSpeed = Math.random() * 4 - 2;
+        }
+        update() {
+            this.y += this.speed;
+            this.x += Math.sin(this.y / 50); // Gentle side-to-side drift
+            this.rotation += this.rotationSpeed;
+            if (this.y > canvas.height) this.reset();
+        }
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation * Math.PI / 180);
+            ctx.fillStyle = this.color;
+            ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+            ctx.restore();
+        }
+    }
+
+    for (let i = 0; i < 75; i++) particles.push(new Particle());
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    animate();
+</script>
+
+</body>
+</html>
